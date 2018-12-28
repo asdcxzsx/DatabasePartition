@@ -123,7 +123,7 @@ DROP PARTITION FUNCTION Partition_Function_By_Time;
 DROP PARTITION SCHEME Sch_Time;
 
 drop table MyTest
-
+----------------------------------------------------------------------------------------------------------------------
 select [CreateTime] from MyTest where [CreateTime]>'2018-10-10'
 
 SELECT  * FROM  sys.dm_db_index_physical_stats(DB_ID('test'), OBJECT_ID('MyTest'), NULL,NULL, 'detailed')
