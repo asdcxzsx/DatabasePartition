@@ -11,12 +11,13 @@ namespace ConsoleApp
     {
         static void Main(string[] args)
         {
+            Random random = new Random();
             using (Context context = new Context())
             {
-                var all = context.All.ToList(); 
-                for (int i = -50; i < 1500; i++)
+                var all = context.All.ToList();
+                for (int i = 0; i < 1500; i++)
                 {
-                    context.All.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = "2018", CreateTime = DateTime.Now.AddDays(-i) });
+                    context.All.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmSS.fff"), CreateTime = DateTime.Now});
                 }
                 context.SaveChanges();
             }
