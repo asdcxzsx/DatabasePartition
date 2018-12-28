@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleApp.Model
+namespace ConsoleApp.Model   
 {
     public class Context : DbContext
     {

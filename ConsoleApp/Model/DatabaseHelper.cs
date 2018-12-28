@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp.Model
 {
-    public class DatabaseHelper
+    public class DatabaseHelper 
     {
         public static void AddFileGroup(List<string> groups)
         {
