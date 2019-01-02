@@ -150,8 +150,6 @@ group by  $partition.Partition_Function_By_Time(CreateTime)
 
 
 /*********************************************************/
-
-
 IF NOT EXISTS (SELECT * FROM sys.partition_functions 
 WHERE name = 'Partition_Function_By_Time_0') CREATE PARTITION FUNCTION Partition_Function_By_Time_0(DATETIME) AS RANGE LEFT FOR VALUES('2019-02-01')
 
@@ -167,8 +165,11 @@ IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time_01')
                 ON Sch_Time(CreateTime)
 
 
-				select * from MyTest where CreateTime>'2019-01-01'
+				select * from MyTest where CreateTime='2019-02-02 16:28:00' order by CreateTime asc
 
+				--delete from MyTest where CreateTime>'2019-02-01'
+				 ALTER DATABASE [Test] ADD FILEGROUP [Test01] 
+                    ALTER DATABASE [Test] ADD FILE (NAME = N'Test01', FILENAME = N'D:\Database\Test01.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[Test01] 
+					ALTER DATABASE [Test] ADD FILEGROUP [Test02] 
+                    ALTER DATABASE [Test] ADD FILE (NAME = N'Test02', FILENAME = N'D:\Database\Test02.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[Test02] 
 
-				 --ALTER DATABASE [Test] ADD FILEGROUP [Test02] 
-     --               ALTER DATABASE [Test] ADD FILE (NAME = N'Test02', FILENAME = N'D:\Database\Test02.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[Test02] 
