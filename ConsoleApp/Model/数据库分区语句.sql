@@ -146,3 +146,29 @@ select * from MyTest where createtime>'2016-10-15'
 select $partition.Partition_Function_By_Time(CreateTime) as partitionNum,count(*) as recordCount
 from MyTest
 group by  $partition.Partition_Function_By_Time(CreateTime)
+
+
+
+/*********************************************************/
+
+
+IF NOT EXISTS (SELECT * FROM sys.partition_functions 
+WHERE name = 'Partition_Function_By_Time_0') CREATE PARTITION FUNCTION Partition_Function_By_Time_0(DATETIME) AS RANGE LEFT FOR VALUES('2019-02-01')
+
+IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time_01')
+ begin CREATE PARTITION SCHEME Sch_Time_01 AS PARTITION Partition_Function_By_Time_0 TO([Test01],[Test02]) end
+
+ alter table [MyTest] DROP CONSTRAINT [PK_dbo.MyTest_Time]
+  ALTER TABLE [dbo].[MyTest] ADD  CONSTRAINT [PK_dbo.MyTest_Time] PRIMARY KEY CLUSTERED 
+                (
+                    [id] ASC,
+	                CreateTime DESC
+                )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+                ON Sch_Time(CreateTime)
+
+
+				select * from MyTest where CreateTime>'2019-01-01'
+
+
+				 --ALTER DATABASE [Test] ADD FILEGROUP [Test02] 
+     --               ALTER DATABASE [Test] ADD FILE (NAME = N'Test02', FILENAME = N'D:\Database\Test02.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[Test02] 

@@ -46,8 +46,7 @@ namespace ConsoleApp.Model
             var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-01"), DateTime.Parse("2019-01-05"));
             var groups = range.Select(x => x.FileGroup).ToList();
             DatabaseHelper.AddFileGroup(groups);
-            var ll = range.Select(x => x.Time).ToList();
-            ll.RemoveAt(0);
+            var ll = range.Select(x => x.Time).Skip(1).ToList();
             DatabaseHelper.CreatePartitionFunction(ll);
             DatabaseHelper.CreatePartitionScheme(groups);
             ////删除聚集索引，关联分区方案与分区表
