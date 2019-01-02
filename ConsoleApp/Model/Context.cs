@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleApp.Model   
+namespace ConsoleApp.Model
 {
     public class Context : DbContext
     {
@@ -43,15 +43,15 @@ namespace ConsoleApp.Model
 
         protected override void Seed(Context context)
         {
-            DatabaseHelper.AddFileGroup(new List<string>()
-            {
-                "FG_01","FG_02","FG_03"
-            });
-            DatabaseHelper.CreatePartitionFunction();
-            DatabaseHelper.CreatePartitionScheme();
-            //删除聚集索引，关联分区方案与分区表
+            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-01"), DateTime.Parse("2019-01-05"));
+            var groups = range.Select(x => x.FileGroup).ToList();
+            DatabaseHelper.AddFileGroup(groups);
+            var ll = range.Select(x => x.Time).ToList();
+            ll.RemoveAt(0);
+            DatabaseHelper.CreatePartitionFunction(ll);
+            DatabaseHelper.CreatePartitionScheme(groups);
+            ////删除聚集索引，关联分区方案与分区表
             DatabaseHelper.RebuildPk();
-
             InitDatabaseIndex(context);
         }
 

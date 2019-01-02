@@ -11,16 +11,15 @@ namespace ConsoleApp
     {
         static void Main(string[] args)
         {
-            Random random = new Random();
             using (Context context = new Context())
             {
-                var st = DateTime.Now.AddDays(-20);
-                var end = DateTime.Now.AddDays(20);
-                var alist = context.All.Where(x => x.CreateTime > st && x.CreateTime < end).ToList();
+                //var st = DateTime.Now;
+                //var end = DateTime.Now.AddDays(1);
+                //var alist = context.All.Where(x => x.CreateTime > st && x.CreateTime < end).ToList();
                 if (!context.All.Any())
                 {
                     List<Test> all = new List<Test>();
-                    for (DateTime start = DateTime.Now.AddDays(-30); start < DateTime.Now.AddMonths(1); start = start.AddMinutes(1))
+                    for (DateTime start = DateTime.Now; start < DateTime.Now.AddDays(1); start = start.AddSeconds(1))
                     {
                         all.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });
                         //context.All.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });

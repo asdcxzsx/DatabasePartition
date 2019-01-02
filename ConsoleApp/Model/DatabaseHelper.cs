@@ -5,6 +5,8 @@ using System.Configuration;
 using System.Data;
 using System.Data.Entity;
 using System.Data.SqlClient;
+using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -12,11 +14,32 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp.Model
 {
+    public class RangeStruct
+    {
+        public string FileGroup { get; set; }
+
+        public string Time { get; set; }
+    }
+
     /// <summary>
     /// http://www.cnblogs.com/knowledgesea/p/3696912.html
     /// </summary>
     public class DatabaseHelper
     {
+        public static List<RangeStruct> GetRange(DateTime s, DateTime e)
+        {
+            List<RangeStruct> rst = new List<RangeStruct>();
+            for (DateTime start = s; start <= e; start = start.AddDays(1))
+            {
+                rst.Add(new RangeStruct
+                {
+                    FileGroup = start.ToString("yyyyMMdd"),
+                    Time = "'" + start.ToString("yyyy-MM-dd") + "'",
+                });
+            }
+            return rst;
+        }
+
         public static void AddFileGroup(List<string> groups)
         {
             using (Context context = new Context())
@@ -47,33 +70,29 @@ namespace ConsoleApp.Model
         /// <summary> 
         /// 创建分区函数
         /// </summary>
-        public static void CreatePartitionFunction()
+        public static void CreatePartitionFunction(List<string> times)
         {
+            //List<string> dts = new List<string>();
+            //DateTime dt = DateTime.Parse("00:00:00");
+            //for (int i = 0; i < 24; i++)
+            //{
+            //    dts.Add(dt.ToString("HH:mm:ss"));
+            //}
+            var val = times.MergeString();
             using (Context context = new Context())
             {
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
-                IF NOT EXISTS (SELECT * FROM sys.partition_functions WHERE name = 'Partition_Function_By_Time')
-                CREATE PARTITION FUNCTION
-                Partition_Function_By_Time(DATETIME) AS
-                RANGE RIGHT
-                FOR VALUES('2018-12-31','2019-01-31')");
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $"IF NOT EXISTS (SELECT * FROM sys.partition_functions WHERE name = 'Partition_Function_By_Time') CREATE PARTITION FUNCTION Partition_Function_By_Time(DATETIME) AS RANGE LEFT FOR VALUES({val})");
             }
         }
         /// <summary>
         /// 分区方案
         /// </summary>
-        public static void CreatePartitionScheme()
+        public static void CreatePartitionScheme(List<string> partitionLst)
         {
             using (Context context = new Context())
             {
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
-                IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time')
-                begin
-                CREATE PARTITION SCHEME
-                Sch_Time AS
-                PARTITION Partition_Function_By_Time
-                TO([FG_01],[FG_02],[FG_03])
-                end");
+                var val = partitionLst.Select(x => $"[{x}]").MergeString();
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $"IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time') begin CREATE PARTITION SCHEME Sch_Time AS PARTITION Partition_Function_By_Time TO({val}) end");
             }
         }
 
@@ -278,6 +297,63 @@ namespace ConsoleApp.Model
                     }
                 }
             }
+        }
+    }
+
+
+
+    public static class Extensions
+    {
+        public static string MergeString(this IEnumerable<string> list, string seed)
+        {
+            var sum = list.Where(a => !string.IsNullOrEmpty(a)).Aggregate("", (current, a) => current + (seed + a));
+            if (sum.Length > 0)
+            {
+                sum = sum.Substring(1);
+            }
+            return sum;
+        }
+
+        public static string MergeString(this IEnumerable<string> list)
+        {
+            return MergeString(list, ",");
+        }
+
+        public static string MergeString<T>(this IEnumerable<T> list, string seed = ",")
+        {
+            return MergeString(list.Select(x => x.ToString()).ToList(), seed);
+        }
+
+        public static List<T> GetDistinct<T>(this IEnumerable<T> list, Func<T, T, bool> exp)
+        {
+            return list.Distinct(new Compare<T>(exp)).ToList();
+        }
+        public static Guid ParseGuid(this string guid)
+        {
+            Guid id;
+            Guid.TryParse(guid, out id);
+            return id;
+        }
+
+    }
+    /// <summary>
+    /// 去重复 getdistinct
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    public class Compare<T> : IEqualityComparer<T>
+    {
+        private readonly Func<T, T, bool> _equalsComparer;
+        public Compare(Func<T, T, bool> equalsComparer)
+        {
+            _equalsComparer = equalsComparer;
+        }
+        public bool Equals(T x, T y)
+        {
+            return null != _equalsComparer && _equalsComparer(x, y);
+        }
+        public int GetHashCode(T obj)
+        {
+            return obj.ToString().GetHashCode();
         }
     }
 }
