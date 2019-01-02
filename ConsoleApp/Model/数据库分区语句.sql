@@ -141,3 +141,8 @@ GO
 
 
 select * from MyTest where createtime>'2016-10-15'
+
+
+select $partition.Partition_Function_By_Time(CreateTime) as partitionNum,count(*) as recordCount
+from MyTest
+group by  $partition.Partition_Function_By_Time(CreateTime)
