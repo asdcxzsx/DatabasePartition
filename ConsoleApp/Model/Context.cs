@@ -43,6 +43,15 @@ namespace ConsoleApp.Model
 
         protected override void Seed(Context context)
         {
+            DatabaseHelper.AddFileGroup(new List<string>()
+            {
+                "FG_01","FG_02","FG_03"
+            });
+            DatabaseHelper.CreatePartitionFunction();
+            DatabaseHelper.CreatePartitionScheme();
+            //删除聚集索引，关联分区方案与分区表
+            DatabaseHelper.RebuildPk();
+
             InitDatabaseIndex(context);
         }
 
