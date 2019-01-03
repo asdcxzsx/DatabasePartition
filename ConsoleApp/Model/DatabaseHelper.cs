@@ -57,7 +57,7 @@ namespace ConsoleApp.Model
                     WHERE name = '{x}')
                     begin
                     ALTER DATABASE [Test] ADD FILEGROUP [{x}] 
-                    ALTER DATABASE [Test] ADD FILE (NAME = N'{x}', FILENAME = N'D:\Database\{x}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{x}] 
+                    ALTER DATABASE [Test] ADD FILE (NAME = N'{x}', FILENAME = N'D:\Database\{x}Log.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{x}] 
                     end");
                     //ALTER DATABASE [Test] REMOVE FILEGROUP {x};
                     //context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"ALTER DATABASE [Test]

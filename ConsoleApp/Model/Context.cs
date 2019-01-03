@@ -43,7 +43,7 @@ namespace ConsoleApp.Model
 
         protected override void Seed(Context context)
         {
-            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-03"), DateTime.Parse("2019-01-05"));
+            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-03"), DateTime.Parse("2019-01-03"));
             var groups = range.Select(x => x.FileGroup).ToList();
             groups.Insert(0,"Start");
             DatabaseHelper.AddFileGroup(groups);
