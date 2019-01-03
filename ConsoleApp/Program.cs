@@ -16,11 +16,13 @@ namespace ConsoleApp
                 if (!context.All.Any())
                 {
                 }
-                var t = DateTime.Now.AddMonths(1);
-                var data = context.All.Where(x => x.CreateTime == t).ToList();
+                //DatabaseHelper.AddPartition();
+                //var t = DateTime.Now.AddMonths(1);
+                var query = context.All.Where(x => x.CreateTime >= DateTime.Now);
+                var data = query.ToList();
                 List<Test> all = new List<Test>();
-                var now = DateTime.Parse(DateTime.Now.ToString("s"));
-                for (DateTime start = now.AddMonths(1); start < now.AddMonths(1).AddDays(1); start = start.AddSeconds(1))
+                var now = DateTime.Parse("2019-01-03");
+                for (DateTime start = now; start < now.AddDays(1); start = start.AddSeconds(1))
                 {
                     all.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });
                     //context.All.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });

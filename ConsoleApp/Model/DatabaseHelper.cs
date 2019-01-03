@@ -81,7 +81,7 @@ namespace ConsoleApp.Model
             var val = times.MergeString();
             using (Context context = new Context())
             {
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $"IF NOT EXISTS (SELECT * FROM sys.partition_functions WHERE name = 'Partition_Function_By_Time') CREATE PARTITION FUNCTION Partition_Function_By_Time(DATETIME) AS RANGE LEFT FOR VALUES({val})");
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $"IF NOT EXISTS (SELECT * FROM sys.partition_functions WHERE name = 'Partition_Function_By_Time') CREATE PARTITION FUNCTION Partition_Function_By_Time(DATETIME) AS RANGE RIGHT FOR VALUES({val})");
             }
         }
         /// <summary>
@@ -92,11 +92,14 @@ namespace ConsoleApp.Model
             using (Context context = new Context())
             {
                 var val = partitionLst.Select(x => $"[{x}]").MergeString();
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $"IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time') begin CREATE PARTITION SCHEME Sch_Time AS PARTITION Partition_Function_By_Time TO({val}) end");
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, 
+                    $"IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time') begin CREATE PARTITION SCHEME Sch_Time AS PARTITION Partition_Function_By_Time TO({val}) end");
             }
         }
 
-
+        /// <summary>
+        /// https://www.cnblogs.com/libingql/p/4087598.html 
+        /// </summary>
         public static void RebuildPk()
         {
             using (Context context = new Context())
@@ -104,15 +107,24 @@ namespace ConsoleApp.Model
                 context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
                 IF EXISTS (select a.name as TabName, h.name as IndexName from sys.objects as a right join sys.indexes as h on a.object_id = h.object_id where  a.type <> 's' and h.name='PK_dbo.MyTest')
                 BEGIN
-                alter table [MyTest] DROP CONSTRAINT [PK_dbo.MyTest]
-                ALTER TABLE [dbo].[MyTest] ADD  CONSTRAINT [PK_dbo.MyTest_Time] PRIMARY KEY CLUSTERED 
+                ALTER TABLE [MyTest] DROP CONSTRAINT [PK_dbo.MyTest]
+                ALTER TABLE [MyTest] ADD CONSTRAINT PK_MyTest PRIMARY KEY CLUSTERED (id ASC, CreateTime DESC) WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
+                ON Sch_Time(CreateTime)
+                END");
+            }
+            /*
+              CREATE CLUSTERED INDEX IX_CreateTime ON MyTest (CreateTime) ON Sch_Time(CreateTime)
+             * CREATE CLUSTERED INDEX IX_CreateDate ON Product ( CreateDate )
+ON Scheme_DateTime ( CreateDate )
+
+             ALTER TABLE [dbo].[MyTest] ADD  CONSTRAINT [PK_dbo.MyTest_Time] PRIMARY KEY CLUSTERED 
                 (
                     [id] ASC,
 	                CreateTime DESC
                 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)
                 ON Sch_Time(CreateTime)
-                END");
-            }
+            
+             */
         }
 
         public static void CreateTable()
@@ -128,6 +140,24 @@ namespace ConsoleApp.Model
 	                [itemno] [nvarchar](10) NULL,
 	                [itemname] [nvarchar](50) NULL,
                 )ON Sch_Time([createtime])");
+            }
+        }
+
+
+        public static void AddPartition(string filegroupTime= "2019-01-06")
+        {
+            var filegroup = filegroupTime.Replace("-", string.Empty);
+            using (Context context = new Context())
+            {
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction,$@"
+                IF NOT EXISTS (SELECT * FROM sys.filegroups WHERE name = '{filegroup}')
+                BEGIN
+                ALTER DATABASE [Test] ADD FILEGROUP [{filegroup}]
+                ALTER DATABASE [Test] ADD FILE (NAME = N'{filegroup}', FILENAME = N'D:\Database\{filegroup}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{filegroup}] 
+                ALTER PARTITION SCHEME Sch_Time NEXT USED [{filegroup}]
+                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('{filegroupTime}')
+                END
+                ");
             }
         }
     }

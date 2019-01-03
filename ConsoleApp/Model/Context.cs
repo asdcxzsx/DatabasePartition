@@ -43,10 +43,13 @@ namespace ConsoleApp.Model
 
         protected override void Seed(Context context)
         {
-            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-01"), DateTime.Parse("2019-01-05"));
+            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-03"), DateTime.Parse("2019-01-05"));
             var groups = range.Select(x => x.FileGroup).ToList();
+            groups.RemoveAt(groups.Count - 1);
+            groups.Add("Boundary");
+            groups.Insert(0,"Start");
             DatabaseHelper.AddFileGroup(groups);
-            var ll = range.Select(x => x.Time).Skip(1).ToList();
+            var ll = range.Select(x => x.Time).ToList();
             DatabaseHelper.CreatePartitionFunction(ll);
             DatabaseHelper.CreatePartitionScheme(groups);
             ////删除聚集索引，关联分区方案与分区表
