@@ -45,8 +45,6 @@ namespace ConsoleApp.Model
         {
             var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-03"), DateTime.Parse("2019-01-05"));
             var groups = range.Select(x => x.FileGroup).ToList();
-            groups.RemoveAt(groups.Count - 1);
-            groups.Add("Boundary");
             groups.Insert(0,"Start");
             DatabaseHelper.AddFileGroup(groups);
             var ll = range.Select(x => x.Time).ToList();

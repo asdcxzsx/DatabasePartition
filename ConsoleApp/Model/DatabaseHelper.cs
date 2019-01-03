@@ -144,7 +144,7 @@ ON Scheme_DateTime ( CreateDate )
         }
 
 
-        public static void AddPartition(string filegroupTime= "2019-01-06")
+        public static void AddPartition(string filegroupTime= "2019-01-07")
         {
             var filegroup = filegroupTime.Replace("-", string.Empty);
             using (Context context = new Context())
