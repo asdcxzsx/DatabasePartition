@@ -173,3 +173,25 @@ IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time_01')
 					ALTER DATABASE [Test] ADD FILEGROUP [Test02] 
                     ALTER DATABASE [Test] ADD FILE (NAME = N'Test02', FILENAME = N'D:\Database\Test02.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[Test02] 
 
+
+
+--https://www.cnblogs.com/fyen/archive/2011/01/18/1938707.html
+ALTER PARTITION SCHEME Sch_Time NEXT USED [20190104]
+ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('2019-01-04')
+
+SELECT * FROM sys.schemas  
+ALTER PARTITION FUNCTION Partition_Function_By_Time() MERGE RANGE ('2019-01-04')
+
+DBCC SHRINKFILE ([20190104], EMPTYFILE);
+ALTER DATABASE [Test] REMOVE FILE [20190104]
+ALTER DATABASE [Test] REMOVE FILEGROUP [20190104]
+
+
+SELECT * FROM sys.filegroups 
+
+select $partition.Partition_Function_By_Time(CreateTime) as partitionNum,count(*) as recordCount
+from MyTest
+group by  $partition.Partition_Function_By_Time(CreateTime)
+
+select * from sysfiles
+

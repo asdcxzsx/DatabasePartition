@@ -18,25 +18,20 @@ namespace ConsoleApp
                 {
                 }
 
-                var cc = context.Database.Connection;
-                var ew = cc.Database;
+                DatabaseHelper.AddPartition(DateTime.Parse("2019-01-05 05:20:02"));
+                //DatabaseHelper.RemovePartition();
 
-                //DatabaseHelper.AddPartition("2019-01-04");
-                ////var t = DateTime.Now.AddMonths(1);
-                //var query = context.All.Where(x => x.CreateTime >= DateTime.Now);
-                //var data = query.ToList();
                 //List<Test> all = new List<Test>();
                 //var now = DateTime.Parse("2019-01-03");
-                //for (DateTime start = now; start < now.AddDays(2); start = start.AddSeconds(1))
+                //for (DateTime start = now; start < now.AddDays(1); start = start.AddSeconds(1))
                 //{
                 //    all.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });
-                //    //context.All.Add(new Test() { itemname = Guid.NewGuid().ToString(), itemno = DateTime.Now.ToString("HHmmss.fff"), CreateTime = start });
                 //}
                 //var dt = all.ToDataTable();
                 //dt.TableName = "MyTest";
                 //dt.FastToDataBase();
+                Console.WriteLine($"Hello Database.Partition.数据库{context.Database.Connection.Database}分区 https://blog.csdn.net/longzuyuan/article/details/17499859");
             }
-            Console.WriteLine("Hello Database.Partition.数据库分区 https://blog.csdn.net/longzuyuan/article/details/17499859");
             Console.ReadKey();
         }
     }

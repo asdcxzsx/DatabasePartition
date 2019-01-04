@@ -43,9 +43,9 @@ namespace ConsoleApp.Model
 
         protected override void Seed(Context context)
         {
-            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-03"), DateTime.Parse("2019-01-03"));
+            var range = DatabaseHelper.GetRange(DateTime.Parse("2019-01-04 09:31:00"), DateTime.Parse("2019-01-04 09:31:00"));
             var groups = range.Select(x => x.FileGroup).ToList();
-            groups.Insert(0,"Start");
+            groups.Insert(0, "Start");
             DatabaseHelper.AddFileGroup(groups);
             var ll = range.Select(x => x.Time).ToList();
             DatabaseHelper.CreatePartitionFunction(ll);

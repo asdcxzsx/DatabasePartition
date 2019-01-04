@@ -33,8 +33,8 @@ namespace ConsoleApp.Model
             {
                 rst.Add(new RangeStruct
                 {
-                    FileGroup = start.ToString("yyyyMMdd"),
-                    Time = "'" + start.ToString("yyyy-MM-dd") + "'",
+                    FileGroup = start.ToString("yyyyMMddHHmmss"),
+                    Time = "'" + start.ToString("s") + "'",
                 });
             }
             return rst;
@@ -57,7 +57,7 @@ namespace ConsoleApp.Model
                     WHERE name = '{x}')
                     begin
                     ALTER DATABASE [Test] ADD FILEGROUP [{x}] 
-                    ALTER DATABASE [Test] ADD FILE (NAME = N'{x}', FILENAME = N'D:\Database\{x}Log.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{x}] 
+                    ALTER DATABASE [Test] ADD FILE (NAME = N'{x}', FILENAME = N'D:\Database\Test\{x}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{x}] 
                     end");
                     //ALTER DATABASE [Test] REMOVE FILEGROUP {x};
                     //context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"ALTER DATABASE [Test]
@@ -92,7 +92,7 @@ namespace ConsoleApp.Model
             using (Context context = new Context())
             {
                 var val = partitionLst.Select(x => $"[{x}]").MergeString();
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, 
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction,
                     $"IF NOT EXISTS (SELECT * FROM sys.partition_schemes WHERE name = 'Sch_Time') begin CREATE PARTITION SCHEME Sch_Time AS PARTITION Partition_Function_By_Time TO({val}) end");
             }
         }
@@ -115,7 +115,7 @@ namespace ConsoleApp.Model
             /*
               CREATE CLUSTERED INDEX IX_CreateTime ON MyTest (CreateTime) ON Sch_Time(CreateTime)
              * CREATE CLUSTERED INDEX IX_CreateDate ON Product ( CreateDate )
-ON Scheme_DateTime ( CreateDate )
+                ON Scheme_DateTime ( CreateDate )
 
              ALTER TABLE [dbo].[MyTest] ADD  CONSTRAINT [PK_dbo.MyTest_Time] PRIMARY KEY CLUSTERED 
                 (
@@ -144,18 +144,37 @@ ON Scheme_DateTime ( CreateDate )
         }
 
 
-        public static void AddPartition(string filegroupTime= "2019-01-07")
+        public static void AddPartition(DateTime time)
         {
-            var filegroup = filegroupTime.Replace("-", string.Empty);
+            var filegroup = time.ToString("yyyyMMddHHmmss");
             using (Context context = new Context())
             {
-                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction,$@"
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
                 IF NOT EXISTS (SELECT * FROM sys.filegroups WHERE name = '{filegroup}')
                 BEGIN
                 ALTER DATABASE [Test] ADD FILEGROUP [{filegroup}]
-                ALTER DATABASE [Test] ADD FILE (NAME = N'{filegroup}', FILENAME = N'D:\Database\{filegroup}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{filegroup}] 
+                ALTER DATABASE [Test] ADD FILE (NAME = N'{filegroup}', FILENAME = N'D:\Database\Test\{filegroup}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{filegroup}] 
                 ALTER PARTITION SCHEME Sch_Time NEXT USED [{filegroup}]
-                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('{filegroupTime}')
+                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('{time.ToString("s")}')
+                END
+                ");
+            }
+        }
+        /// <summary>
+        /// 删除（合并）一个分区表
+        /// </summary>
+        public static void RemovePartition(DateTime time)
+        {
+            using (Context context = new Context())
+            {
+                string file = time.ToString("yyyyMMddHHmmss");
+                context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
+                IF EXISTS (SELECT * FROM sys.filegroups WHERE name = '{file}')
+                BEGIN
+                ALTER PARTITION FUNCTION Partition_Function_By_Time() MERGE RANGE ('{time}')
+                DBCC SHRINKFILE ([{file}], EMPTYFILE);
+                ALTER DATABASE [Test] REMOVE FILE [{file}]
+                ALTER DATABASE [Test] REMOVE FILEGROUP [{file}]
                 END
                 ");
             }
