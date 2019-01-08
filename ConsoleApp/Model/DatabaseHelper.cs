@@ -152,11 +152,11 @@ namespace ConsoleApp.Model
                 context.Database.ExecuteSqlCommand(TransactionalBehavior.DoNotEnsureTransaction, $@"
                 IF NOT EXISTS (SELECT * FROM sys.filegroups WHERE name = '{filegroup}')
                 BEGIN
-                ALTER DATABASE [Test] ADD FILEGROUP [{filegroup}]
-                ALTER DATABASE [Test] ADD FILE (NAME = N'{filegroup}', FILENAME = N'D:\Database\Test\{filegroup}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{filegroup}] 
-                ALTER PARTITION SCHEME Sch_Time NEXT USED [{filegroup}]
-                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('{time.ToString("s")}')
-                END
+                ALTER DATABASE [Test] ADD FILEGROUP [{filegroup}];
+                ALTER DATABASE [Test] ADD FILE (NAME = N'{filegroup}', FILENAME = N'D:\Database\Test\{filegroup}.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[{filegroup}];
+                ALTER PARTITION SCHEME Sch_Time NEXT USED [{filegroup}];
+                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('{time.ToString("s")}');
+                END;
                 ");
             }
         }

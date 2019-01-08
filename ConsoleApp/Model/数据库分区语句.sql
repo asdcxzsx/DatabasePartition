@@ -195,3 +195,129 @@ group by  $partition.Partition_Function_By_Time(CreateTime)
 
 select * from sysfiles
 
+--https://www.cnblogs.com/zzs-pedestrian/p/6525390.html
+select convert(varchar(50), ps.name) as partition_scheme,
+p.partition_number, 
+convert(varchar(10), ds2.name) as filegroup, 
+convert(varchar(19), isnull(v.value, ''), 120) as range_boundary, 
+str(p.rows, 9) as rows
+from sys.indexes i 
+join sys.partition_schemes ps on i.data_space_id = ps.data_space_id 
+join sys.destination_data_spaces dds
+on ps.data_space_id = dds.partition_scheme_id 
+join sys.data_spaces ds2 on dds.data_space_id = ds2.data_space_id 
+join sys.partitions p on dds.destination_id = p.partition_number
+and p.object_id = i.object_id and p.index_id = i.index_id 
+join sys.partition_functions pf on ps.function_id = pf.function_id 
+LEFT JOIN sys.Partition_Range_values v on pf.function_id = v.function_id
+and v.boundary_id = p.partition_number - pf.boundary_value_on_right 
+WHERE i.object_id = object_id('Login_Log')    --此处是表名
+and i.index_id in (0, 1) 
+order by p.partition_number
+
+
+
+
+
+
+
+
+
+
+
+
+-- IF EXISTS (SELECT * FROM sys.filegroups WHERE name = '20190105000000')
+--                BEGIN
+--                ALTER PARTITION FUNCTION Partition_Function_By_Time() MERGE RANGE ('2019-01-05 00:00:00')
+--                DBCC SHRINKFILE ([20190105000000], EMPTYFILE);
+--                ALTER DATABASE [LiveMonitor] REMOVE FILE [20190105000000]
+--                ALTER DATABASE [LiveMonitor] REMOVE FILEGROUP [20190105000000]
+--                END
+
+--select * from sys.sysfiles
+
+select * from SensorLog where CreateTime between '2019-01-04 01:50:01' and '2019-01-04 23:59:59' and Sensor_Id='5a261242-335b-435b-8dae-0667f20f24d1'
+
+DBCC SHRINKFILE (LiveMonitor)
+
+
+select $partition.Partition_Function_By_Time(CreateTime) as partitionNum,count(*) as recordCount
+from SensorLog
+group by  $partition.Partition_Function_By_Time(CreateTime)
+
+SELECT * FROM sys.filegroups 
+
+select * from sysfiles
+
+SELECT * FROM sys.partition_functions 
+
+--ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('2019-01-05')
+
+
+ IF NOT EXISTS (SELECT * FROM sys.filegroups WHERE name = '20190107000000')
+                BEGIN
+                ALTER DATABASE [LiveMonitor] ADD FILEGROUP [20190107000000]
+                ALTER DATABASE [LiveMonitor] ADD FILE (NAME = N'20190107000000', FILENAME = N'D:\Database\20190107000000.ndf', SIZE = 1MB, FILEGROWTH = 1MB) TO FILEGROUP[20190107000000] 
+                ALTER PARTITION SCHEME Sch_Time NEXT USED [20190107000000]
+                ALTER PARTITION FUNCTION Partition_Function_By_Time() SPLIT RANGE('2019-01-07')
+                END
+
+
+
+select $partition.Partition_Function_By_Time(CreateTime) as partitionNum,count(*) as recordCount
+from SensorLog
+group by  $partition.Partition_Function_By_Time(CreateTime)
+
+
+select * from sys.partition_range_values
+
+
+select convert(varchar(50), ps.name) as partition_scheme,
+p.partition_number, 
+convert(varchar(20), ds2.name) as filegroup, 
+convert(varchar(19), isnull(v.value, ''), 120) as range_boundary, 
+str(p.rows, 9) as rows
+from sys.indexes i 
+join sys.partition_schemes ps on i.data_space_id = ps.data_space_id 
+join sys.destination_data_spaces dds
+on ps.data_space_id = dds.partition_scheme_id 
+join sys.data_spaces ds2 on dds.data_space_id = ds2.data_space_id 
+join sys.partitions p on dds.destination_id = p.partition_number
+and p.object_id = i.object_id and p.index_id = i.index_id 
+join sys.partition_functions pf on ps.function_id = pf.function_id 
+LEFT JOIN sys.Partition_Range_values v on pf.function_id = v.function_id
+and v.boundary_id = p.partition_number - pf.boundary_value_on_right 
+WHERE i.object_id = object_id('SensorLog')    --此处是表名
+and i.index_id in (0, 1) 
+order by p.partition_number
+
+
+alter table SensorLog switch partition 1 to SensorLogShadow  partition 1
+
+truncate table SensorLogShadow
+
+select count(*) from ExtendLog
+
+
+select convert(varchar(50), ps.name) as partition_scheme,
+p.partition_number, 
+convert(varchar(20), ds2.name) as filegroup, 
+convert(varchar(19), isnull(v.value, ''), 120) as range_boundary, 
+str(p.rows, 9) as rows
+from sys.indexes i 
+join sys.partition_schemes ps on i.data_space_id = ps.data_space_id 
+join sys.destination_data_spaces dds
+on ps.data_space_id = dds.partition_scheme_id 
+join sys.data_spaces ds2 on dds.data_space_id = ds2.data_space_id 
+join sys.partitions p on dds.destination_id = p.partition_number
+and p.object_id = i.object_id and p.index_id = i.index_id 
+join sys.partition_functions pf on ps.function_id = pf.function_id 
+LEFT JOIN sys.Partition_Range_values v on pf.function_id = v.function_id
+and v.boundary_id = p.partition_number - pf.boundary_value_on_right 
+WHERE i.object_id = object_id('ExtendLog')    --此处是表名
+and i.index_id in (0, 1) 
+order by p.partition_number
+
+
+
+select count(*) from SensorLog

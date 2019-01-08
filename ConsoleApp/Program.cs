@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,8 +19,15 @@ namespace ConsoleApp
                 {
                 }
 
-                DatabaseHelper.AddPartition(DateTime.Parse("2019-01-05 05:20:02"));
-                //DatabaseHelper.RemovePartition();
+                var sss = DateTime.Now.ToString("s");
+                //string dir = @"D:\Database1";
+                //if (!Directory.Exists(dir))
+                //{
+                //    Directory.CreateDirectory(dir);
+                //}
+
+                //DatabaseHelper.AddPartition(DateTime.Parse("2019-01-05 05:00:00"));
+               // DatabaseHelper.RemovePartition(DateTime.Parse("2019-01-05 05:00:00"));
 
                 //List<Test> all = new List<Test>();
                 //var now = DateTime.Parse("2019-01-03");
